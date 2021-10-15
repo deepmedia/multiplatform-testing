@@ -1,0 +1,26 @@
+name: 'Publish Snapshots'
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  SNAPSHOT:
+    name: 'Publish Snapshots'
+    runs-on: ubuntu-latest
+    env:
+      SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+      SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+      SONATYPE_USER: ${{ secrets.SONATYPE_USER }}
+      SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: temurin
+          cache: gradle
+      - name: 'Publish sonatype snapshots'
+        run: ./gradlew publishToSonatypeSnapshot
