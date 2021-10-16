@@ -8,5 +8,8 @@ task:
   only_if: $CIRRUS_BRANCH == "main" || $CIRRUS_PR != ""
   publish_script: ./gradlew publishToDirectorySnapshot
   # https://youtrack.jetbrains.com/issue/KT-42693 fixed in 1.6.0
-  fix_42693_script: sudo apt-get install libncurses5
+  # https://askubuntu.com/a/1252113
+  fix_42693_script:
+    - sudo add-apt-repository universe
+    - sudo apt-get install libncurses5 libncurses5:amd64
   test_script: ./gradlew sample:runAllAndroidNativeTests sample:killAndroidEmulators --stacktrace
