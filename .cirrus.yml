@@ -9,6 +9,6 @@ task:
 
   # https://youtrack.jetbrains.com/issue/KT-42693 fixed in 1.6.0
   # https://askubuntu.com/a/1252113
-  fix_42693_script: sudo apt-get install libtinfo5
+  fix_42693_script: sudo apt-get update && sudo apt-get install libtinfo5
   publish_script: ./gradlew publishToDirectorySnapshot
   test_script: ./gradlew sample:runAllAndroidNativeTests sample:killAndroidEmulators --stacktrace
