@@ -7,4 +7,4 @@ task:
     kvm: true
   only_if: $CIRRUS_BRANCH == "main" || $CIRRUS_PR != ""
   publish_script: ./gradlew publishToDirectorySnapshot
-  test_script: /gradlew sample:runAllAndroidNativeTests sample:killAndroidEmulators --stacktrace
+  test_script: ./gradlew sample:runAllAndroidNativeTests sample:killAndroidEmulators --stacktrace
