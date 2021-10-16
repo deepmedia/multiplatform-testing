@@ -1,0 +1,10 @@
+task:
+  name: 'Build & Test (linux)'
+  container:
+    image: cirrusci/android-sdk:tools
+    cpu: 8
+    memory: 16G
+    kvm: true
+  only_if: $CIRRUS_BRANCH == "main" || CIRRUS_PR != ""
+  publish_script: ./gradlew publishToDirectorySnapshot
+  test_script: /gradlew sample:runAllAndroidNativeTests sample:killAndroidEmulators --stacktrace
