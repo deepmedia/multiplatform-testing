@@ -57,19 +57,21 @@ buildscript {
 
 A few things are required to test Android Native targets:
 
-1. The Android SDK Command Line tools. The plugin will look for the SDK in `$ANDROID_HOME`, 
-   but you can configure the directory:
+1. A X64 host machine. The plugin *might* work properly on ARM, but this has not been tested yet.
+   If it works (emulator runs), it is unlikely that X86-based binaries can be executed successfully.
+
+2. The Android SDK Command Line tools should be installed or, if they are not, you should provide
+   a valid `sdkHome` directory.
 
    ```kotlin
    multiplatformTesting {
        androidTools {
+           // path to installed SDK, or path where SDK will be installed
+           // defaults to $ANDROID_HOME environment variable.
            sdkHome.set("path/to/sdk")
        }
    }
    ```
-
-2. A X64 host machine. The plugin *might* work properly on ARM, but this has not been tested yet. 
-   If it works, it is still unlikely that you would be able to test X86-based binaries.
 
 3. [Hardware acceleration](https://developer.android.com/studio/run/emulator-acceleration). While
    Android documentation states that it is "recommended", hosts without acceleration are typically

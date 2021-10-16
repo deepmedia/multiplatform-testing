@@ -1,9 +1,12 @@
 package io.deepmedia.tools.testing.android.tools
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.RelativePath
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.property
 import javax.inject.Inject
 
@@ -19,6 +22,33 @@ open class AndroidToolsRefreshTask @Inject constructor(objects: ObjectFactory) :
     init {
         // Let's say that after running once, we're fine.
         outputs.upToDateWhen { true }
+    }
+
+    @TaskAction
+    fun download() {
+        val path = SdkManager.cmdlineToolsPath(sdkHome.get(), "latest").parentFile
+        if (!path.exists()) {
+            val configuration = project.configurations["androidCommandLineTools"]
+            if (configuration.allDependencies.isEmpty()) {
+                return // No way to download them, next action will trhow.
+            }
+            println("Android Command Line tools are not installed. Downloading from Google.")
+            // https://github.com/ReactiveCircus/android-emulator-runner/blob/main/src/sdk-installer.ts
+            // https://github.com/cirruslabs/docker-images-android/blob/master/sdk/tools/Dockerfile
+            val file = configuration.resolve().single()
+            println("Unzipping Command Line tools into $path...")
+            project.copy {
+                from(project.zipTree(file))
+                into(path)
+                // By default, tools are copied in $ANDROID_HOME/cmdline-tools/cmdline-tools.
+                // Need to rename the first segment to "latest".
+                eachFile {
+                    val segments = relativePath.segments.clone()
+                    segments[0] = "latest"
+                    relativePath = RelativePath(relativePath.isFile, *segments)
+                }
+            }
+        }
     }
 
     @TaskAction
