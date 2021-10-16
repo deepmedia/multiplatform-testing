@@ -8,6 +8,11 @@ A Gradle plugin for easy testing of Kotlin Multiplatform projects.
 
 - Planned support for `android()` targets to do the same.
 
+|Component|Status|
+|--------|-------|
+|Android Native tests (Linux, amd64)|[![Build Status](https://api.cirrus-ci.com/github/deepmedia/multiplatform-testing.svg?task=Build%20%26%20Test%20%28linux%29&script=test)](https://cirrus-ci.com/github/deepmedia/multiplatform-testing)|
+|Android Native tests (macOS, x64)|[![Build Status](https://github.com/deepmedia/multiplatform-testing/actions/workflows/test.yml/badge.svg)](https://github.com/deepmedia/multiplatform-testing/actions)|
+
 ### Install
 
 The plugin is available on Maven Central. This means you have to add it to the project classpath:
@@ -38,8 +43,8 @@ plugins {
 
 A few things are required to test Android Native targets:
 
-1. The Android SDK should be installed, including the Command Line tools. The plugin will look for
-   the SDK in `$ANDROID_HOME`, but you can configure the directory:
+1. The Android SDK Command Line tools. The plugin will look for the SDK in `$ANDROID_HOME`, 
+   but you can configure the directory:
 
    ```kotlin
    multiplatformTesting {
@@ -49,15 +54,15 @@ A few things are required to test Android Native targets:
    }
    ```
 
-2. A X64 host machine. The plugin *might* work properly on ARM, but this has not been tested
-   and the documentation around which emulators can run on which machine is currently very poor.
+2. A X64 host machine. The plugin *might* work properly on ARM, but this has not been tested yet. 
+   If it works, it is still unlikely that you would be able to test X86-based binaries.
 
 3. [Hardware acceleration](https://developer.android.com/studio/run/emulator-acceleration). While
    Android documentation states that it is "recommended", hosts without acceleration are typically
    unable to run the emulator at all.
 
-Conditions 1. and 2. should be met by most continuous integration runners. Hardware acceleration
-is currently less common (e.g. `macos-latest` machines in GitHub actions).
+Conditions 1. and 2. should be met by most continuous integration runners. Hardware acceleration is available
+in GitHub Actions (`macos-latest`) and Cirrus CI (linux containers with `kvm: true`).
 
 ### How it works
 
@@ -79,7 +84,7 @@ workarounds to known issues to make testing as smooth and fast as possible.
 
 ### Tasks
 
-> Hint: use ./gradlew tasks --group='Multiplatform Testing' to list all testing tasks.
+> Use ./gradlew tasks --group='Multiplatform Testing' to list all testing tasks.
 
 The plugin provides three types of tasks:
 
@@ -88,12 +93,9 @@ The plugin provides three types of tasks:
 - `killAndroidEmulators` task: kills all currently running emulators. Can be used to cleanup.
 
 Using the `runAllAndroidNativeTests` tasks is recommended, because it ensures proper ordering and thus
-the most efficient emulator installation. Many emulator images can run multiple architectures. For example:
-
-- 64bit images can typically run 32bit binaries
-- latest X86/64 images can run ARM binaries through binary translation
-
-The plugin is aware of this and, if `runAllAndroidNativeTests` is used, is able to pick up the best
+the most efficient emulator installation. This is because many emulator images can run multiple architectures
+(for example: 64bit images might run 32bit binaries, and X86/64 images might run ARM binaries through binary
+translation). The plugin is aware of this and, if `runAllAndroidNativeTests` is used, is able to pick up the best
 emulator for the job, saving time and resources.
 
 This means that the typical command will be:
@@ -101,8 +103,6 @@ This means that the typical command will be:
 ```
 ./gradlew app:runAllAndroidNativeTests app:killAndroidEmulators
 ```
-
-or just `./gradlew app:runAllAndroidNativeTests` if you plan to run tests again.
 
 ### x86_64 binaries
 
