@@ -38,7 +38,7 @@ subprojects {
     // Configure publishable modules.
     pluginManager.withPlugin("maven-publish") {
         group = "io.deepmedia.tools.testing"
-        version = "0.1.1"
+        version = "0.1.2"
     }
 
     /* tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).configureEach {

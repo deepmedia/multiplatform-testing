@@ -23,7 +23,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("io.deepmedia.tools.testing:plugin:0.1.1")
+        classpath("io.deepmedia.tools.testing:plugin:0.1.2")
     }
 }
 ```
@@ -36,6 +36,20 @@ plugins {
     id("io.deepmedia.tools.multiplatform-testing")
 }
 ```
+
+We also publish development snapshots with version `latest-SNAPSHOT` in sonatype:
+
+```kotlin
+buildscript {
+    repositories {
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    }
+    dependencies {
+        classpath("io.deepmedia.tools.testing:plugin:latest-SNAPSHOT")
+    }
+}
+```
+
 
 # Android Native targets
 
