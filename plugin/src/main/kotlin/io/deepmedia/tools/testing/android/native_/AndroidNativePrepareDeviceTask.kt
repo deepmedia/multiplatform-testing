@@ -101,24 +101,23 @@ open class AndroidNativePrepareDeviceTask @Inject constructor(objects: ObjectFac
     }
 
     /**
-     * After starting the emulator, we need a way to identify the device serial number
-     * in adb. There seem to be none. The only option I can see is specify a port and rely
-     * on adb assigning the serial "emulator-<PORT>". Port should be an even number in the
-     * range 5554 to 5584: https://developer.android.com/studio/run/emulator-commandline#common
-     * See also "emulator -help-port" with slightly different interval, we take the smallest.
+     * After starting the emulator, we need a way to identify the device serial number in adb.
+     * This is done by convention: ports go from 5554 up (increasing by 2). Another option is
+     * to choose it randomly in the valid interval (5554-5584) but for CI it's better to use the
+     * first for predictability - not all ports might be open. See:
+     * - https://developer.android.com/studio/run/emulator-commandline#common
+     * - emulator -help-port
      */
     private fun Avd.connectDevice(): ConnectedDevice {
-        val usedPorts = adb.devices(onlineOnly = false).mapNotNull {
+        val usedPorts = adb.devices(onlineOnly = false).flatMap {
             it.id.takeIf { it.startsWith("emulator-") }
                 ?.removePrefix("emulator-")
                 ?.toInt()
+                ?.let { if (it % 2 == 0) listOf(it) else listOf(it - 1, it + 1) }
+                ?: emptyList()
         }
-        tailrec fun port(): Int {
-            return Random.nextInt(5554, 5584)
-                .takeIf { it % 2 == 0 && it !in usedPorts }
-                ?: port()
-        }
-        val port = port()
+        // after identifying the port, let's also pass it to emulator.start() just for safety.
+        val port = (5554 .. 5584 step 2).first { it !in usedPorts }
         val id = "emulator-$port"
         val output = project.file("build/multiplatformTesting/$id.log")
         val process = emulator.start(this, port, output)

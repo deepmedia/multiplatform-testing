@@ -18,7 +18,7 @@ internal class Emulator(project: Project, sdkHome: String) {
 
     fun start(avd: Avd, port: Int, outputFile: File?): Process {
         val accelerated = runCatching {
-            terminal.run(emulator, "-accel-check", timeout = 5)
+            terminal.run(emulator, "-accel-check", timeout = 10)
         }.isSuccess
         return terminal.spawn(emulator,
             "-avd", avd.name,

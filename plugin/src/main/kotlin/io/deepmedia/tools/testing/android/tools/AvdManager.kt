@@ -18,7 +18,7 @@ internal class AvdManager(project: Project, sdkHome: String) {
     }
 
     fun list(): List<Avd> {
-        val content = terminal.run(avd, "list", "avd", silent = true, timeout = 5)
+        val content = terminal.run(avd, "list", "avd", silent = true, timeout = 10)
         val lines = content.lines().drop(1) // remove header
         // TODO consider split("\n---------\n")
         val devices = lines.fold(mutableListOf("")) { devices, line ->
@@ -65,7 +65,7 @@ internal class AvdManager(project: Project, sdkHome: String) {
             "delete", "avd",
             "--name", device.name,
             silent = false,
-            timeout = 5,
+            timeout = 10,
         )
         println("AVD ${device.name} deleted.")
     }

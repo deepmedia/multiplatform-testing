@@ -29,7 +29,7 @@ internal class SdkManager(project: Project, sdkHome: String) {
     }
 
     init {
-        terminal.run(sdk, "--version", timeout = 5)
+        terminal.run(sdk, "--version", timeout = 10)
         // terminal.run(sdk, "--list", timeout = 10)
     }
 

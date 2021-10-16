@@ -17,11 +17,11 @@ internal class Adb(project: Project, sdkHome: String) {
     private val String?.idArgs get() = this?.let { arrayOf("-s", this) } ?: emptyArray()
 
     fun printDevices() {
-        terminal.run(adb, "devices", "-l", timeout = 5)
+        terminal.run(adb, "devices", "-l", timeout = 10)
     }
 
     fun devices(onlineOnly: Boolean = true): List<ConnectedDevice> {
-        val res = terminal.run(adb, "devices", "-l", silent = true, timeout = 5)
+        val res = terminal.run(adb, "devices", "-l", silent = true, timeout = 10)
         return res.lineSequence().drop(1)
             .filter { it.isNotBlank() }
             .map { ConnectedDevice.parse(it) }
@@ -31,7 +31,7 @@ internal class Adb(project: Project, sdkHome: String) {
     }
 
     private fun deviceInfo(device: ConnectedDevice): ConnectedDeviceInfo {
-        val content = terminal.run(adb, *device.idArgs, "shell", "getprop", silent = true, timeout = 5)
+        val content = terminal.run(adb, *device.idArgs, "shell", "getprop", silent = true, timeout = 10)
         return ConnectedDeviceInfo.parse(content)
     }
 
