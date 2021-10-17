@@ -21,11 +21,11 @@ open class AndroidToolsInspectAllImagesTask @Inject constructor(objects: ObjectF
 
     @Option(option = "min_api", description = "Min API level.")
     @get:Input
-    val minApi: Property<Int> = objects.property<Int>().convention(21)
+    val minApi: Property<String> = objects.property<String>().convention(21.toString()) // int options not supported
 
     @Option(option = "max_api", description = "Max API level.")
     @get:Input
-    val maxApi: Property<Int> = objects.property<Int>().convention(Int.MAX_VALUE)
+    val maxApi: Property<String> = objects.property<String>().convention(Int.MAX_VALUE.toString()) // int options not supported
 
     @Option(option = "abi_list", description = "Comma-separated list of abis to check.")
     @get:Input
@@ -49,7 +49,7 @@ open class AndroidToolsInspectAllImagesTask @Inject constructor(objects: ObjectF
     @TaskAction
     fun inspect() {
         val images = sdk.list<SdkPackage.SystemImage>().filter {
-            it.api in minApi.get() .. maxApi.get()
+            it.api in minApi.get().toInt() .. maxApi.get().toInt()
                     && it.abi in abiList.get().split(',')
                     && it.tag in tagList.get().split(',')
         }
