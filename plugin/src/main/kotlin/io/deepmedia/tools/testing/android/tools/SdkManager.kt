@@ -89,11 +89,19 @@ internal class SdkManager(project: Project, sdkHome: String) {
         return ids.map { id -> installed.first { it.id == id } }
     }
 
-    fun uninstall(vararg packages: SdkPackage) {
-        if (packages.isEmpty()) return
-        println("Uninstalling package(s): ${packages.map { it.id }}")
+    fun uninstallPlatform(api: Int) {
+        uninstall("platforms;android-$api")
+    }
+
+    fun uninstall(vararg packages: SdkPackage) =
+        uninstall(*packages.map(SdkPackage::id).toTypedArray())
+
+    fun uninstall(vararg ids: String) {
+        if (ids.isEmpty()) return
+        println("Uninstalling package(s): ${ids.toList()}")
         terminal.run(sdk,
-            "--uninstall", *packages.map { "\"${it.id}\"" }.toTypedArray(),
+            "--uninstall",
+            *ids,
             silent = true,
             timeout = 30
         )
