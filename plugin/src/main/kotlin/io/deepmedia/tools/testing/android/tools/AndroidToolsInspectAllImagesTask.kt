@@ -106,14 +106,14 @@ open class AndroidToolsInspectAllImagesTask @Inject constructor(objects: ObjectF
             runCatching { process?.destroyForcibly()?.waitFor(10, TimeUnit.SECONDS) }
             runCatching { process?.destroy() }
             output.readLines().forEach { println("  $it") }
-            runCatching { avd.delete(device) }
-            sdk.uninstall(image)
             Result(
                 image = image.id,
                 abiList = emptyList(),
                 exception = "${e::class.simpleName} ${e.message}"
             )
         } finally {
+            avd.delete(device)
+            sdk.uninstall(image)
             output.delete()
         }
     }
