@@ -12,3 +12,15 @@ task:
   fix_42693_script: sudo apt-get update && sudo apt-get install libtinfo5
   publish_script: ./gradlew publishToDirectorySnapshot
   test_script: ./gradlew sample:runAllAndroidNativeTests sample:killAndroidEmulators --stacktrace
+
+task:
+  name: 'Inspect system images (linux)'
+  container:
+    image: cirrusci/android-sdk:tools
+    cpu: 8
+    memory: 16G
+    kvm: true
+  only_if: $CIRRUS_BRANCH == "images_inspection"
+  fix_42693_script: sudo apt-get update && sudo apt-get install libtinfo5
+  publish_script: ./gradlew publishToDirectorySnapshot
+  test_script: ./gradlew sample:inspectAllAndroidImages --min_api=29 --stacktrace
