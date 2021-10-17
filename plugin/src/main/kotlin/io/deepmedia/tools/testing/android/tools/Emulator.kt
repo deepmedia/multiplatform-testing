@@ -20,6 +20,7 @@ internal class Emulator(project: Project, sdkHome: String) {
         val accelerated = runCatching {
             terminal.run(emulator, "-accel-check", timeout = 10)
         }.isSuccess
+        // emulator -avd <avd> -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
         return terminal.spawn(emulator,
             "-avd", avd.name,
             "-port", port.toString(),
