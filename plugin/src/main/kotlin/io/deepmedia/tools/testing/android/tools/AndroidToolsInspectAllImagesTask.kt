@@ -7,6 +7,7 @@ import org.gradle.api.tasks.*
 import org.gradle.api.tasks.options.Option
 import org.gradle.kotlin.dsl.property
 import java.io.File
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 open class AndroidToolsInspectAllImagesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
@@ -93,6 +94,7 @@ open class AndroidToolsInspectAllImagesTask @Inject constructor(objects: ObjectF
             process = emu.start(device, 5554, output)
             println("${image.id}: Waiting for device to get online.")
             val connected = adb.await("emulator-5554", 100L)
+            adb.emu("kill", connected)
             Result(
                 image = image.id,
                 abiList = connected.info!!.abiList,
@@ -101,7 +103,8 @@ open class AndroidToolsInspectAllImagesTask @Inject constructor(objects: ObjectF
         } catch (e: Throwable) {
             println("${image.id}: Something went wrong.")
             runCatching { adb.printDevices() }
-            runCatching { process?.destroyForcibly() }
+            runCatching { process?.destroyForcibly()?.waitFor(10, TimeUnit.SECONDS) }
+            runCatching { process?.destroy() }
             output.readLines().forEach { println("  $it") }
             runCatching { avd.delete(device) }
             sdk.uninstall(image)
