@@ -102,8 +102,9 @@ open class AndroidToolsInspectAllImagesTask @Inject constructor(objects: ObjectF
             println("${image.id}: Something went wrong.")
             runCatching { adb.printDevices() }
             runCatching { process?.destroyForcibly() }
-            runCatching { avd.delete(device) }
             output.readLines().forEach { println("  $it") }
+            runCatching { avd.delete(device) }
+            sdk.uninstall(image)
             Result(
                 image = image.id,
                 abiList = emptyList(),

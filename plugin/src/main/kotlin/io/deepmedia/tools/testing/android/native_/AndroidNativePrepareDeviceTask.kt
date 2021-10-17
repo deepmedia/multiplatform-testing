@@ -10,6 +10,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.property
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import java.io.File
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -119,7 +120,7 @@ open class AndroidNativePrepareDeviceTask @Inject constructor(objects: ObjectFac
         // after identifying the port, let's also pass it to emulator.start() just for safety.
         val port = (5554 .. 5584 step 2).first { it !in usedPorts }
         val id = "emulator-$port"
-        val output = project.file("build/multiplatformTesting/$id.log")
+        val output: File = project.file("build/multiplatformTesting/$id.log")
         val process = emulator.start(this, port, output)
         return try {
             adb.await(deviceId = id, timeout = 120L)

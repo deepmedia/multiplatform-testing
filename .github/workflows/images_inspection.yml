@@ -1,0 +1,29 @@
+name: 'Inspect Android System Images'
+
+on:
+  push:
+    branches:
+      - images_inspection
+
+jobs:
+  INSPECT:
+    name: 'Inspect images (macos)'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: temurin
+          cache: gradle
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-konan
+
+      - name: 'Build & publish to maven local directory.'
+        run: ./gradlew publishToDirectorySnapshot
+
+      - name: 'Run :sample inspectAllAndroidImages task.'
+        run: ./gradlew sample:inspectAllAndroidImages --min_api=29 --stacktrace
