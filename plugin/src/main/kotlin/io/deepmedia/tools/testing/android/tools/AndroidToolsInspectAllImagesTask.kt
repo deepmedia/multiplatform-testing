@@ -14,6 +14,8 @@ open class AndroidToolsInspectAllImagesTask @Inject constructor(objects: ObjectF
 
     companion object {
         fun taskName() = "inspectAllAndroidImages"
+        private val VALID_ABIS = listOf("x86_64", "x86", "arm64-v8a", "armeabi-v7a")
+        private val VALID_TAGS = listOf("default", "google_apis", "google_apis_playstore")
     }
 
     @get:Input
@@ -29,92 +31,122 @@ open class AndroidToolsInspectAllImagesTask @Inject constructor(objects: ObjectF
 
     @Option(option = "abi_list", description = "Comma-separated list of abis to check.")
     @get:Input
-    val abiList: Property<String> = objects.property<String>().convention("x86_64,x86,armeabi-v7a,arm64-v8a")
+    val abiList: Property<String> = objects.property<String>().convention(VALID_ABIS.joinToString(","))
 
     @Option(option = "tag_list", description = "Comma-separated list of tags to check.")
     @get:Input
-    val tagList: Property<String> = objects.property<String>().convention("google_apis,google_apis_playstore,default")
-
-    private data class Result(
-        val image: String,
-        val abiList: List<String>,
-        val exception: String?
-    )
+    val tagList: Property<String> = objects.property<String>().convention(VALID_TAGS.joinToString(","))
 
     private val sdk by lazy { SdkManager(project, sdkHome.get()) }
     private val avd by lazy { AvdManager(project, sdkHome.get()) }
     private val emu by lazy { Emulator(project, sdkHome.get()) }
     private val adb by lazy { Adb(project, sdkHome.get()) }
 
-    @TaskAction
-    fun inspect() {
-        val images = sdk.list<SdkPackage.SystemImage>().filter {
-            it.api in minApi.get().toInt() .. maxApi.get().toInt()
-                    && it.abi in abiList.get().split(',')
-                    && it.tag in tagList.get().split(',')
+    private data class Info(
+        val image: String,
+        val abiList: List<String>,
+        val exception: String?
+    )
+
+    private fun List<Info>.print(expected: Int) {
+        val partial = size != expected
+        println("\n----------------------------")
+        if (partial) {
+            println("PARTIAL INSPECTION RESULTS ($size/$expected)")
+        } else {
+            println("FINAL INSPECTION RESULTS ($size images)")
         }
-        println("INSPECTING ${images.size} IMAGES")
-        val results = images.mapIndexed { i, it ->
-            println("INSPECTING IMAGE ${(i + 1)}/${images.size}")
-            inspect(it)
-        }
-        println("------------------")
-        println("INSPECTION RESULTS")
-        println("------------------")
-        println()
-        val success = results.filter { it.exception == null }.sortedByDescending { it.abiList.size }
-        val failure = results.filter { it.exception != null }
-        println("SUCCESSFUL IMAGES (${success.size}/${results.size})")
+        println("----------------------------\n")
+        val success = filter { it.exception == null }.sortedByDescending { it.abiList.size }
+        val failure = filter { it.exception != null }
+        println("SUCCESSFUL IMAGES (${success.size}/${size})")
         success.forEach {
             println("- ${it.image} ${it.abiList}")
         }
         println()
-        println("FAILED IMAGES (${failure.size}/${results.size})")
+        println("FAILED IMAGES (${failure.size}/${size})")
         failure.forEach {
             println("- ${it.image} '${it.exception}'")
         }
+        println("\n----------------------------\n")
     }
 
-    private fun inspect(image: SdkPackage.SystemImage): Result {
-        if (sdk.listInstalled<SdkPackage.SystemImage>().none { it.id == image.id }) {
-            println("${image.id}: Installing image.")
-            sdk.install(image)
+    @TaskAction
+    fun inspect() {
+        val abis = abiList.get().split(',').filter { it in VALID_ABIS }
+        val tags = tagList.get().split(',').filter { it in VALID_TAGS }
+        val images = sdk.list<SdkPackage.SystemImage>().filter {
+            it.api in minApi.get().toInt() .. maxApi.get().toInt() && it.abi in abis && it.tag in tags
         }
+        println("INSPECTING ${images.size} IMAGES")
+        val results = mutableListOf<Info>()
+        images.forEachIndexed { i, it ->
+            println("INSPECTING IMAGE ${it.id} (${(i + 1)}/${images.size})")
+            results.add(inspect(it))
+            deinits.reversed().forEach { it.invoke() }
+            deinits.clear()
+            results.print(images.size)
+        }
+    }
+
+    private val deinits = mutableListOf<() -> Unit>()
+
+    private inline fun <T> SdkPackage.SystemImage.step(
+        op: String,
+        init: () -> T,
+        crossinline deinit: (T) -> Unit,
+        err: (Info) -> Nothing
+    ): T {
+        println("$id: STEP '$op' STARTED.")
+        val res = try {
+            init()
+        } catch (e: Throwable) {
+            println("$id: STEP '$op' FAILED.")
+            deinits.reversed().forEach { it.invoke() }
+            deinits.clear()
+            err(Info(id, emptyList(), "Failed to $op (${e.message ?: e::class.simpleName ?: "unknown"})"))
+        }
+        deinits.add { deinit(res) }
+        return res
+    }
+
+    private fun inspect(image: SdkPackage.SystemImage): Info {
         if (sdk.listInstalled<SdkPackage.Platform>().none { it.api == image.api }) {
-            println("${image.id}: Installing platform ${image.api}.")
-            sdk.installPlatform(image.api)
+            image.step("install platform", { sdk.installPlatform(image.api) }, { }, { return it })
         }
-        println("${image.id}: Creating AVD.")
-        val device = avd.create(image)
+
+        if (sdk.listInstalled<SdkPackage.SystemImage>().none { it.id == image.id }) {
+            image.step("install image", { sdk.install(image) }, { sdk.uninstall(image) }, { return it })
+        }
+
+        val device = image.step("create avd", { avd.create(image) }, { avd.delete(it) }, { return it })
 
         println("${image.id}: Running emulator.")
         val output: File = project.file("build/multiplatformTesting/${device.name}.log")
         var process: Process? = null
-        return try {
-            process = emu.start(device, 5554, output)
-            println("${image.id}: Waiting for device to get online.")
-            val connected = adb.await("emulator-5554", 100L)
-            adb.emu("kill", connected)
-            Result(
-                image = image.id,
-                abiList = connected.info!!.abiList,
-                exception = null
-            )
-        } catch (e: Throwable) {
-            println("${image.id}: Something went wrong.")
-            runCatching { adb.printDevices() }
-            runCatching { process?.destroyForcibly()?.waitFor(10, TimeUnit.SECONDS) }
-            runCatching { process?.destroy() }
-            output.readLines().forEach { println("  $it") }
-            Result(
-                image = image.id,
-                abiList = emptyList(),
-                exception = "${e::class.simpleName} ${e.message}"
-            )
-        } finally {
-            avd.delete(device)
-            sdk.uninstall(image)
-            output.delete()
-        }
+        val connected = image.step("run emulator",
+            init = {
+                process = emu.start(device, 5554, output)
+                println("${image.id}: Waiting for device to get online.")
+                adb.await("emulator-5554", 180L)
+            },
+            deinit = {
+                adb.emu("kill", it)
+                output.delete()
+            },
+            err = {
+                runCatching { adb.printDevices() }
+                runCatching { process?.destroyForcibly()?.waitFor(10, TimeUnit.SECONDS) }
+                runCatching { process?.destroy() }
+                output.readLines().forEach { println("  $it") }
+                output.delete()
+                return it
+            },
+        )
+        return Info(
+            image = image.id,
+            abiList = connected.info!!.abiList,
+            exception = null
+        )
     }
 }
