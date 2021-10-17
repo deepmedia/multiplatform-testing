@@ -23,4 +23,4 @@ task:
   only_if: $CIRRUS_BRANCH == "images_inspection"
   fix_42693_script: sudo apt-get update && sudo apt-get install libtinfo5
   publish_script: ./gradlew publishToDirectorySnapshot
-  test_script: ./gradlew sample:inspectAllAndroidImages --drop=25 --stacktrace
+  test_script: ./gradlew sample:inspectAllAndroidImages --drop=52 --stacktrace

@@ -4,7 +4,6 @@ import io.deepmedia.tools.testing.MultiplatformTestingPlugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.*
 
-
 internal fun Project.registerAndroidToolsTasks(options: AndroidToolsOptions) {
     tasks.register(
         AndroidToolsRefreshTask.taskName(),
@@ -51,7 +50,7 @@ private fun Project.registerAndroidToolsRepo() {
             filter { includeGroup("android") }
         }
     }
-    val androidCommandLineTools by configurations.creating {
+    val androidCommandLineTools = configurations.create("androidCommandLineTools") {
         isCanBeResolved = true
         isCanBeConsumed = false
         isVisible = false

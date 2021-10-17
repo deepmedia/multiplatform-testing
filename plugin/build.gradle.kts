@@ -22,6 +22,10 @@ java {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions {
         jvmTarget = "1.8"
+        // Prevent issue when running on old versions of Gradle that use old Kotlin
+        // https://youtrack.jetbrains.com/issue/KT-30330
+        // apiVersion = "1.3"
+        // languageVersion = "1.3"
     }
 }
 

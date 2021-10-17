@@ -13,7 +13,7 @@ import javax.inject.Inject
 open class AndroidToolsInspectAllImagesTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
     companion object {
-        fun taskName() = "inspectAllAndroidImages"
+        fun taskName(): String = "inspectAllAndroidImages"
         private val VALID_ABIS = listOf("x86_64", "x86", "arm64-v8a", "armeabi-v7a")
         private val VALID_TAGS = listOf("default", "google_apis", "google_apis_playstore")
     }
