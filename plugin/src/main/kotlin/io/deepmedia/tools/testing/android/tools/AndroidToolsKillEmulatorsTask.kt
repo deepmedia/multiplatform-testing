@@ -16,10 +16,9 @@ open class AndroidToolsKillEmulatorsTask @Inject constructor(objects: ObjectFact
     @get:Input
     val sdkHome: Property<String> = objects.property()
 
-    private val adb by lazy { Adb(project, sdkHome.get()) }
-
     @TaskAction
     fun killEmulators() {
+        val adb = Adb(project, sdkHome.get())
         adb.devices().filter {
             it.info?.avdName != null
         }.forEach {

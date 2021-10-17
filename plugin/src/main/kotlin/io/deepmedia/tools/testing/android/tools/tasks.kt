@@ -23,6 +23,14 @@ internal fun Project.registerAndroidToolsTasks(options: AndroidToolsOptions) {
         description = "Kill Android emulators after a multiplatform testing run."
         sdkHome.set(options.sdkHome)
     }
+    tasks.register(
+        AndroidToolsInspectAllImagesTask.taskName(),
+        AndroidToolsInspectAllImagesTask::class
+    ) {
+        isEnabled = System.getenv("CI") == "true"
+        dependsOn(AndroidToolsRefreshTask.taskName())
+        sdkHome.set(options.sdkHome)
+    }
 
     registerAndroidToolsRepo()
 }
@@ -35,7 +43,6 @@ private fun Project.registerAndroidToolsRepo() {
         val repo = ivy("https://dl.google.com/") {
             patternLayout {
                 artifact("/[organisation]/repository/[module]-[revision].[ext]")
-                // android/repository/commandlinetools-mac-7583922_latest.zip
             }
             metadataSources { artifact() }
         }

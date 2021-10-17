@@ -50,7 +50,6 @@ buildscript {
 }
 ```
 
-
 # Android Native targets
 
 ### Requirements
@@ -78,7 +77,7 @@ A few things are required to test Android Native targets:
    unable to run the emulator at all.
 
 Conditions 1. and 2. should be met by most continuous integration runners. Hardware acceleration is available
-in GitHub Actions (`macos-latest`) and Cirrus CI (linux containers with `kvm: true`).
+in GitHub Actions (`macos` runners) and Cirrus CI (linux containers with `kvm: true`).
 
 ### How it works
 
