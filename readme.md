@@ -13,6 +13,8 @@ A Gradle plugin for easy testing of Kotlin Multiplatform projects.
 |Android Native tests (Linux, amd64)|[![Build Status](https://api.cirrus-ci.com/github/deepmedia/multiplatform-testing.svg?task=Build%20%26%20Test%20%28linux%29&script=test)](https://cirrus-ci.com/github/deepmedia/multiplatform-testing)|
 |Android Native tests (macOS, x64)|[![Build Status](https://github.com/deepmedia/multiplatform-testing/actions/workflows/test.yml/badge.svg)](https://github.com/deepmedia/multiplatform-testing/actions)|
 
+To run the plugin, Gradle 6.8+ is required.
+
 ### Install
 
 The plugin is available on Maven Central. This means you have to add it to the project classpath:
@@ -60,7 +62,7 @@ A few things are required to test Android Native targets:
    If it works (emulator runs), it is unlikely that X86-based binaries can be executed successfully.
 
 2. The Android SDK Command Line tools should be installed or, if they are not, you should provide
-   a valid `sdkHome` directory.
+   a valid `sdkHome` directory in which they will be downloaded (macOS / Linux only).
 
    ```kotlin
    multiplatformTesting {
