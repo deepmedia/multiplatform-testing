@@ -38,6 +38,6 @@ subprojects {
     // Configure publishable modules.
     pluginManager.withPlugin("maven-publish") {
         group = "io.deepmedia.tools.testing"
-        version = "0.1.2"
+        version = "0.2.0"
     }
 }
