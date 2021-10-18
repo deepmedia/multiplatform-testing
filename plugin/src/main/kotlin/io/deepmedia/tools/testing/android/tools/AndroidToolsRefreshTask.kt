@@ -60,6 +60,7 @@ open class AndroidToolsRefreshTask @Inject constructor(objects: ObjectFactory) :
         val installed = sdk.listInstalled<SdkPackage>()
 
         // Update cmdline-tools;latest. This includes the sdkmanager itself and avdmanager.
+        // TODO cmdLine1 is null when we installed from dl.google.com. We'll download twice.
         val cmdLine0 = available.filterIsInstance<SdkPackage.CmdLineTools>().first { it.latest }
         val cmdLine1 = installed.filterIsInstance<SdkPackage.CmdLineTools>().lastOrNull() // last should have higher version
         println("cmdline-tools: installed=${cmdLine1?.version} latest=${cmdLine0.version}")

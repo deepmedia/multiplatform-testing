@@ -35,12 +35,14 @@ internal class SdkManager(project: Project, sdkHome: String) {
 
     private fun List<String>.dropUntil(predicate: (String) -> Boolean): List<String> {
         val index = indexOfFirst(predicate)
-        return subList(index + 1, size)
+        return if (index < 0) emptyList()
+        else subList(index + 1, size)
     }
 
     private fun List<String>.dropBeyond(predicate: (String) -> Boolean): List<String> {
         val index = indexOfFirst(predicate)
-        return subList(0, index)
+        return if (index < 0) this
+        else subList(0, index)
     }
 
     private fun String.isDividerLine() = contains("-------") && contains('|')
