@@ -108,7 +108,18 @@ internal object ImageInspections {
         "system-images;android-31;default;x86_64" to               listOf("x86_64"),
         "system-images;android-31;google_apis;x86_64" to           listOf("x86_64", "arm64-v8a"),
         "system-images;android-31;google_apis_playstore;x86_64" to listOf("x86_64", "arm64-v8a")
-    )
+    ).mapValues { (image, abis) ->
+        val api = image.split(';')[1].split('-')[1].toInt()
+        val abi = image.split(';')[3]
+        var result = abis
+        // Some x86 images before API 30 provided arm execution, maybe early NDK translation
+        // that was later refined in API 30. I'm not able to run arm there (undefined symbol: __gnu_Unwind_Find_exidx).
+        // Maybe it's a translation issue, maybe it's a Kotlin issue, anyway let's disable this.
+        if (abi.startsWith("x86") && api < 30) {
+            result = result.filter { !it.startsWith("arm") }
+        }
+        result
+    }
 }
 
 private val MacOsX64Inspections = """

@@ -110,7 +110,7 @@ The plugin provides three types of tasks:
 - `killAndroidEmulators` task: kills all currently running emulators. Can be used to cleanup.
 
 Using the `runAllAndroidNativeTests` tasks is recommended, because it ensures proper ordering and thus
-the most efficient emulator installation. This is because many emulator images can run multiple architectures
+the most efficient emulator installation. This is because emulator images can run multiple architectures
 (for example: 64bit images might run 32bit binaries, and X86/64 images might run ARM binaries through binary
 translation). The plugin is aware of this and, if `runAllAndroidNativeTests` is used, is able to pick up the best
 emulator for the job, saving time and resources.
@@ -123,9 +123,9 @@ This means that the typical command will be:
 
 ### x86_64 binaries
 
-Testing `x86_64` is disabled by default. The reason is simple - these binaries seem to be broken
-in K/N and hit a segmentation fault. This means that the `run<x64Target>Tests` task will always
-be skipped, despite being defined. Should you want to actually run them, explicitly enable them:
+Testing `x86_64` binaries is currently disabled because the workaround we use (see How it works section)
+does not work for this architecture. For this reason, the `run<x64Target>Tests` task is disabled by default
+and will always be skipped. If you are feeling adventurous, the task can be explicitly enabled:
 
 ```kotlin
 multiplatformTesting {

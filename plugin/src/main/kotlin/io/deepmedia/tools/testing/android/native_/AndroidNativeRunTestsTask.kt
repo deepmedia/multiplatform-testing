@@ -45,6 +45,14 @@ open class AndroidNativeRunTestsTask @Inject constructor(objects: ObjectFactory)
         .convention(false)
 
     @Option(
+        option = "no_runner",
+        description = "Whether to avoid using the dlopen runner."
+    )
+    @get:Input
+    val noRunner: Property<Boolean> = objects.property<Boolean>()
+        .convention(false)
+
+    @Option(
         option = "dl_path",
         description = "Value for LD_LIBRARY_PATH, with runtime replacement: " +
                 "{64} becomes 64 on 64-bit machines, {32} becomes 32 on 32-bit machines. " +
@@ -70,11 +78,14 @@ open class AndroidNativeRunTestsTask @Inject constructor(objects: ObjectFactory)
         val device = device.get()
         val arch = architecture.get()
         val coreDumps = coreDumps.get()
+        val noRunner = noRunner.get()
 
         // Push executable files.
         adb.push(executable.asFile.absolutePath, "/data/local/tmp", device)
-        adb.push(runner.asFile.absolutePath, "/data/local/tmp", device)
-        adb.run("chmod 777 /data/local/tmp/${runner.asFile.name}", device, 5) // using + in chmod does not work on all devices
+        if (!noRunner) {
+            adb.push(runner.asFile.absolutePath, "/data/local/tmp", device)
+            adb.run("chmod 777 /data/local/tmp/${runner.asFile.name}", device, 5) // using + in chmod does not work on all devices
+        }
 
         // Dynamic loading: the wrapper will use dlopen at runtime to open the actual executable.
         // We need to pass LD_LIBRARY_PATH for loading it and its dependencies. Note that this path
@@ -96,17 +107,24 @@ open class AndroidNativeRunTestsTask @Inject constructor(objects: ObjectFactory)
         // in a finally block because we only have one thread.
         // https://github.com/JetBrains/kotlin/blob/31d7d341d4efb8d8ebcfa24136f39d0bc4d5ab35/kotlin-native/runtime/src/main/cpp/Porting.cpp#L64-L67
         // https://developer.android.com/studio/command-line/logcat
-        adb.run("logcat -b all -c", device, 5) // clear previous
+        runCatching {
+            // clear previous, catch because it hangs on some devices
+            adb.run("logcat -c", device, 5)
+        }
 
         // Prepare for core dumps if needed. If enabled, we need proper ulimit and we need to
         // execute from writable directory (tmp) otherwise it won't work.
         command = when (coreDumps) {
-            true -> "ulimit -c unlimited && cd /data/local/tmp && $command ./${runner.asFile.name}"
-            false -> "$command /data/local/tmp/${runner.asFile.name}"
+            true -> "ulimit -c unlimited && cd /data/local/tmp && $command ./"
+            false -> "$command /data/local/tmp/"
+        }
+        command = when (noRunner) {
+            true -> "$command${executable.asFile.name}"
+            false -> "$command${runner.asFile.name}"
         }
 
         // Prepare arguments.
-        val args = listOf(
+        val args = if (noRunner) emptyList() else listOf(
             // Passing just the executable name should be enough because we added it to LD path,
             // However this is not always enough, see comments in LD_LIBRARY_PATH definition above.
             "/data/local/tmp/${executable.asFile.name}",
@@ -120,7 +138,7 @@ open class AndroidNativeRunTestsTask @Inject constructor(objects: ObjectFactory)
         } finally {
             // On some devices, adb command stays on even with the -d flag, so we need a timeout
             runCatching {
-                adb.run("logcat -b main -v tag -s Konan_main:V -d", device, 5)
+                adb.run("logcat -v tag *:F Konan_main:V tombstoned:E -d", device, 5)
             }
         }
     }

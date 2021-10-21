@@ -8,6 +8,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
+import org.gradle.api.tasks.options.Option
 import org.gradle.kotlin.dsl.property
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.io.File
@@ -25,6 +26,14 @@ open class AndroidNativePrepareDeviceTask @Inject constructor(objects: ObjectFac
 
     @get:Internal
     val device: Property<ConnectedDevice> = objects.property()
+
+    @Option(
+        option = "image",
+        description = "Require a specific image."
+    )
+    @get:Input
+    @get:Optional
+    val image: Property<String> = objects.property()
 
     private val adb by lazy { Adb(project, sdkHome.get()) }
     private val avd by lazy { AvdManager(project, sdkHome.get()) }
@@ -44,11 +53,21 @@ open class AndroidNativePrepareDeviceTask @Inject constructor(objects: ObjectFac
         val arch = architecture.get()
         val matcher = ArchitectureMatcher(arch)
         device.set(
+            image.orNull?.asSystemImage()?.createAvd(true)?.connectDevice() ?:
             matcher.findConnectedDevice() ?:
             matcher.findAvd()?.connectDevice() ?:
-            matcher.findSystemImage()?.createAvd()?.connectDevice() ?:
+            matcher.findSystemImage()?.createAvd(false)?.connectDevice() ?:
             error("Could not find or create a device for $arch. This architecture can't be tested.")
         )
+    }
+
+    private fun String.asSystemImage(): SdkPackage.SystemImage {
+        val installed = sdk.listInstalled<SdkPackage>()
+        val image = (installed.firstOrNull { it.id == this } ?: sdk.install(this).first()) as SdkPackage.SystemImage
+        if (installed.none { it is SdkPackage.Platform && it.api == image.api }) {
+            sdk.installPlatform(image.api)
+        }
+        return image
     }
 
     private fun ArchitectureMatcher.findConnectedDevice(): ConnectedDevice? {
@@ -96,7 +115,11 @@ open class AndroidNativePrepareDeviceTask @Inject constructor(objects: ObjectFac
         return image
     }
 
-    private fun SdkPackage.SystemImage.createAvd(): Avd {
+    private fun SdkPackage.SystemImage.createAvd(check: Boolean): Avd {
+        if (check) {
+            val avd = avd.list().firstOrNull { it.api == api && it.tag == tag && it.abi == abi }
+            if (avd != null) return avd
+        }
         println("Creating AVD for $id.")
         return avd.create(this)
     }

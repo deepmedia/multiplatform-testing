@@ -26,16 +26,29 @@ fun KotlinMultiplatformExtension.androidNative(
     androidNativeArm64(configure = wrapper)
 }
 
+multiplatformTesting {
+    androidNative {
+        enableX64()
+    }
+}
+
 kotlin {
     androidNative()
     jvm()
     js { browser() }
+    linuxX64 { }
 
     sourceSets {
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
             }
+        }
+    }
+
+    targets.withType(KotlinNativeTarget::class).configureEach {
+        binaries.configureEach {
+            freeCompilerArgs += listOf("-Xverbose-phases=ObjectFiles,Linker")
         }
     }
 }
