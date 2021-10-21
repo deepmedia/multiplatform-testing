@@ -1,8 +1,6 @@
 package io.deepmedia.tools.testing.sample
 
-import kotlin.native.asCPointer
 import kotlin.native.concurrent.AtomicInt
-import kotlin.native.concurrent.AtomicLong
 
 class AndroidNativeArm32Ops {
     fun useAtomics() {
@@ -10,7 +8,8 @@ class AndroidNativeArm32Ops {
         val res = int.addAndGet(4)
         require(res == 7)
 
-        val lon = AtomicLong(1300000000340343423L)
+        // These fail until https://github.com/JetBrains/kotlin/pull/4623 is in
+        /* val lon = AtomicLong(1300000000340343423L)
         require(lon.value == 1300000000340343423L)
 
         require(!lon.compareAndSet(500000000000L,500000000000L))
@@ -19,6 +18,6 @@ class AndroidNativeArm32Ops {
         
         val lon2 = AtomicLong(1300000000340343423L)
         val res2 = lon2.addAndGet(-300000000340343423L)
-        require(res2 == 1000000000000000000L)
+        require(res2 == 1000000000000000000L) */
     }
 }
