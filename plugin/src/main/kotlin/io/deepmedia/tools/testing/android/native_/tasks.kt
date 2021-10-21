@@ -107,9 +107,9 @@ private fun KotlinNativeTarget.registerAndroidNativeTasks(
         dependsOn(prepareDevice)
         device.set(prepareDevice.flatMap { it.device })
 
-        if (targetArch == Architecture.X64) {
+        /* if (targetArch == Architecture.X64) {
             onlyIf { options.x64Enabled.get() }
-        }
+        } */
     }
 
     runAllTask.configure {

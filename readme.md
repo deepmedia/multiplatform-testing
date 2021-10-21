@@ -90,7 +90,7 @@ workarounds to known issues to make testing as smooth and fast as possible.
    option and automatically run all test suites and print logs to Android logcat.
 2. K/N test executables [are currently broken](https://youtrack.jetbrains.com/issue/KT-49144).
    The plugin workarounds this issue by treating them as shared libraries and loading them at
-   runtime using `dlopen()`, which works because these are PIE binaries.
+   runtime using `dlopen()` and passing appropriate arguments to trick the Kotlin runtime launcher.
 3. The plugin looks for a connected device (real device or emulator) that is able to run the architecture.
 4. If not found, the plugin looks for existing AVDs and starts the first one that would work.
 5. If not found, the plugin downloads the needed packages from `sdkmanager`, creates an AVD and starts it.
@@ -109,8 +109,8 @@ The plugin provides three types of tasks:
 - `run<TargetName>Tests` tasks: runs tests for the specified target, e.g. `runAndroidNativeX86Tests`
 - `killAndroidEmulators` task: kills all currently running emulators. Can be used to cleanup.
 
-Using the `runAllAndroidNativeTests` tasks is recommended, because it ensures proper ordering and thus
-the most efficient emulator installation. This is because emulator images can run multiple architectures
+Using the `runAllAndroidNativeTests` tasks is recommended, because it ensures the most efficient
+emulator installation. This is because emulator images can run multiple architectures
 (for example: 64bit images might run 32bit binaries, and X86/64 images might run ARM binaries through binary
 translation). The plugin is aware of this and, if `runAllAndroidNativeTests` is used, is able to pick up the best
 emulator for the job, saving time and resources.
@@ -119,18 +119,4 @@ This means that the typical command will be:
 
 ```
 ./gradlew app:runAllAndroidNativeTests app:killAndroidEmulators
-```
-
-### x86_64 binaries
-
-Testing `x86_64` binaries is currently disabled because the workaround we use (see How it works section)
-does not work for this architecture. For this reason, the `run<x64Target>Tests` task is disabled by default
-and will always be skipped. If you are feeling adventurous, the task can be explicitly enabled:
-
-```kotlin
-multiplatformTesting {
-    androidNative {
-        enableX64()
-    }
-}
 ```

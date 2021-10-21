@@ -1,6 +1,7 @@
 #include <iostream>
 #include <dlfcn.h>
 #include <string>
+#include <android/native_activity.h>
 
 bool isIssue1515Error(char * err) {
     std::string str(err);
@@ -10,11 +11,9 @@ bool isIssue1515Error(char * err) {
 
 /**
  * The point of this wrapper is being able to actually execute K/N executables on Android Native.
- * They are currently broken, see https://youtrack.jetbrains.com/issue/KT-49144 .
- *
- * Normally it shouldn't be possible to dlopen/dlsym an executable main function, but it works
- * here because these are PIE excutables and we know the function name (Konan_main) that does the
- * appropriate runtime setup and teardown.
+ * They are currently broken, see https://youtrack.jetbrains.com/issue/KT-49144 - they are compiled
+ * as shared libraries that are supposed to be accessed from the Konan_main entry point. This
+ * makes it possible for us to use dlopen/dlsym to retrieve the symbol and execute it.
  *
  * Note that dlopen() can fail in same cases because of a bug introduced in latest NDK releases
  * (present as of 23.0.7599858) in which two functions, AMotionEvent_fromJava and AInputEvent_release,
@@ -46,8 +45,7 @@ int main(int argc, const char * argv[]) {
         return 1;
     }
 
-    typedef void (*VoidFunction)();
-    auto test = (VoidFunction) dlsym(lib, testFunction);
+    auto symbol = dlsym(lib, testFunction);
     err = dlerror();
     if (err) {
         std::cout << "Runner: function '" << testFunction << "' not found: " << err << "\n";
@@ -55,8 +53,18 @@ int main(int argc, const char * argv[]) {
         return 1;
     }
 
+    // Kotlin runtime will look at ANativeActivity->instance to check whether to start a new thread
+    // or not. We definitely want to fall into the "not" case, so we need to construct appropriate object.
+    // https://github.com/JetBrains/kotlin/blob/master/kotlin-native/runtime/src/launcher/cpp/androidLauncher.cpp#L215
+    std::cout << "Runner: creating dummy arguments...\n";
+    auto function = (ANativeActivity_createFunc*) symbol;
+    ANativeActivity arg0;
+    arg0.instance = &arg0; // whatever
+    void* arg1 = nullptr; // whatever
+    size_t arg2 = sizeof(int); // whatever
+
     std::cout << "Runner: about to invoke test executable...\n";
-    test();
+    function(&arg0, arg1, arg2);
     dlclose(lib);
     return 0;
 }
