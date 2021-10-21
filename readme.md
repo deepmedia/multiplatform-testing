@@ -25,7 +25,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("io.deepmedia.tools.testing:plugin:0.2.0")
+        classpath("io.deepmedia.tools.testing:plugin:0.3.0")
     }
 }
 ```
