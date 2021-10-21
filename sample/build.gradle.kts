@@ -26,12 +26,6 @@ fun KotlinMultiplatformExtension.androidNative(
     androidNativeArm64(configure = wrapper)
 }
 
-multiplatformTesting {
-    androidNative {
-        enableX64()
-    }
-}
-
 kotlin {
     androidNative()
     jvm()
