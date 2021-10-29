@@ -37,7 +37,9 @@ internal class AvdManager(project: Project, sdkHome: String) {
     // https://developer.android.com/studio/command-line/avdmanager#commands_and_command_options
     // example image: "system-images;android-25;google_apis;x86"
     fun create(image: SdkPackage.SystemImage) = create(
-        name = "multiplatform-testing-${image.id.replace(';', '-').replace('_', '-')}",
+        name = "multiplatform-testing-${image.id
+            .replace(';', '-')
+            .replace('_', '-')}",
         image = image.id,
         // Our names are unique, so if we're duplicating some avd something is wrong
         force = false
