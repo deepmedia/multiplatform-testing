@@ -27,7 +27,14 @@ fun KotlinMultiplatformExtension.androidNative(
 }
 
 kotlin {
-    androidNative()
+    androidNative {
+        binaries {
+            getTest(DEBUG).apply {
+                // freeCompilerArgs += listOf("-Xbinary=androidProgramType=standalone")
+                // freeCompilerArgs += listOf("-Xbinary=androidProgramType=nativeActivity")
+            }
+        }
+    }
     jvm()
     js { browser() }
     linuxX64 { }

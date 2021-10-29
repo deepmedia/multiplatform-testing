@@ -14,7 +14,13 @@ internal class ArchitectureMatcher(val architecture: Architecture) {
         // Avoid picking up android tv or wear. Also "default" should be last: according to the footer
         // here https://android-developers.googleblog.com/2020/03/run-arm-apps-on-android-emulator.html
         // it is unlikely to have ARM translation turned on.
-        private val TAGS = listOf("google_apis", "google_apis_playstore", "default")
+        private val TAGS = listOf(
+            "google_atd",
+            "aosp_atd",
+            "google_apis",
+            "google_apis_playstore",
+            "default"
+        )
     }
 
     private fun matches(image: SdkPackage.SystemImage) = image.api >= MIN_API
