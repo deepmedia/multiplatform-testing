@@ -31,5 +31,6 @@ open class AndroidJvmOptions @Inject constructor(
     val defaultVariant: Property<String> = objects
         .property<String>()
         .convention(providers
-            .environmentVariable("MPT_ANDROID_VARIANT"))
+            .environmentVariable("MPT_ANDROID_VARIANT")
+            .forUseAtConfigurationTime())
 }
