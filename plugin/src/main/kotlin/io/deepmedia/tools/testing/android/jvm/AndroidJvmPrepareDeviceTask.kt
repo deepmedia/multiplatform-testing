@@ -48,7 +48,7 @@ open class AndroidJvmPrepareDeviceTask @Inject constructor(objects: ObjectFactor
             return false
         }
         return this.apiLevel.orNull.let { it == null || it == apiLevel } &&
-                this.tag.orNull.let { it == null || it == tag || tag == null }
+                this.tag.orNull.let { (it == null && tag in TAGS) || it == tag || tag == null }
     }
 
     @TaskAction
@@ -173,5 +173,14 @@ open class AndroidJvmPrepareDeviceTask @Inject constructor(objects: ObjectFactor
         @OptIn(ExperimentalStdlibApi::class)
         fun taskName(target: KotlinAndroidTarget) =
             "prepare${target.name.replaceFirstChar { it.uppercase() }}TestDevice"
+
+        // Avoid picking up android tv or wear.
+        private val TAGS = listOf(
+            "google_atd",
+            "aosp_atd",
+            "google_apis",
+            "google_apis_playstore",
+            "default"
+        )
     }
 }
