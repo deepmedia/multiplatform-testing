@@ -34,7 +34,8 @@ dependencies {
     api(gradleKotlinDsl())
     api("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.5.31")
     api("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31")
-    // api("com.android.tools.build:gradle:7.0.2")
+    api("com.android.tools.build:gradle-api:7.0.3")
+    compileOnly("com.android.tools.build:gradle:7.0.3")
     add(runners.name, project(":runner-dlopen", "output"))
 }
 

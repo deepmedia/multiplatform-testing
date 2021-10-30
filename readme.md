@@ -1,17 +1,21 @@
 # Multiplatform Testing Plugin
 
-A Gradle plugin for easy testing of Kotlin Multiplatform projects.
+A Gradle plugin for easy testing of Kotlin Multiplatform projects in your CI pipeline.
 
-- Support for testing `androidNative*` binaries on the emulator.
+- Support for testing `android()` targets on the emulator or a connected device.
   The plugin takes care of downloading SDK components, identifying the correct platform
   and system image, spinning up a well configured emulator and run the tests.
 
-- Planned support for `android()` targets to do the same.
+- Support for testing `androidNative*()` binaries on the emulator or a connected device.
+  Just like JVM-based android targets, the plugin takes care of the emulator setup
+  and ensures that the device will be able to run the target architecture.
 
 |Component|Status|
 |--------|-------|
-|Android Native tests (Linux, amd64)|[![Build Status](https://api.cirrus-ci.com/github/deepmedia/multiplatform-testing.svg?task=Build%20%26%20Test%20%28linux%29&script=test)](https://cirrus-ci.com/github/deepmedia/multiplatform-testing)|
-|Android Native tests (macOS, x64)|[![Build Status](https://github.com/deepmedia/multiplatform-testing/actions/workflows/test.yml/badge.svg)](https://github.com/deepmedia/multiplatform-testing/actions)|
+|Android JVM tests (Linux, amd64)|[![Build Status](https://api.cirrus-ci.com/github/deepmedia/multiplatform-testing.svg?task=AndroidJvm%20Tests%20%28linux%29&script=test)](https://cirrus-ci.com/github/deepmedia/multiplatform-testing)|
+|Android JVM tests (macOS, x64)|[![Build Status](https://github.com/deepmedia/multiplatform-testing/actions/workflows/test_androidjvm.yml/badge.svg)](https://github.com/deepmedia/multiplatform-testing/actions)|
+|Android Native tests (Linux, amd64)|[![Build Status](https://api.cirrus-ci.com/github/deepmedia/multiplatform-testing.svg?task=AndroidNative%20Tests%20%28linux%29&script=test)](https://cirrus-ci.com/github/deepmedia/multiplatform-testing)|
+|Android Native tests (macOS, x64)|[![Build Status](https://github.com/deepmedia/multiplatform-testing/actions/workflows/test_androidnative.yml/badge.svg)](https://github.com/deepmedia/multiplatform-testing/actions)|
 
 To run the plugin, Gradle 6.8+ is required.
 
@@ -52,11 +56,11 @@ buildscript {
 }
 ```
 
-# Android Native targets
+# Android (JVM) targets
 
 ### Requirements
 
-A few things are required to test Android Native targets:
+A few things are required to test Android targets:
 
 1. A X64 host machine. The plugin *might* work properly on ARM, but this has not been tested yet.
    If it works (emulator runs), it is unlikely that X86-based binaries can be executed successfully.
@@ -78,8 +82,53 @@ A few things are required to test Android Native targets:
    Android documentation states that it is "recommended", hosts without acceleration are typically
    unable to run the emulator at all.
 
-Conditions 1. and 2. should be met by most continuous integration runners. Hardware acceleration is available
-in GitHub Actions (`macos` runners) and Cirrus CI (linux containers with `kvm: true`).
+### Tasks
+
+> Use ./gradlew tasks --group='Multiplatform Testing' to list all testing tasks.
+
+The plugin provides two relevant tasks:
+
+- `run<TargetName>Tests` tasks: runs tests for the specified target, typically this will be
+  `runAndroidTests` unless you used a custom name for the android target.
+- `killAndroidEmulators` task: kills all currently running emulators. Can be used to cleanup.
+
+This means that the typical command will be:
+
+```
+./gradlew app:runAndroidTests app:killAndroidEmulators
+```
+
+### Configuration
+
+```kotlin
+multiplatformTesting {
+    android {
+        // Enforce testing on a specific API level. If not set, we'll choose the API level in
+        // a way that minimizes the number of emulators and the download of new system images.
+        // Defaults to the MPT_ANDROID_API environment variable.
+        apiLevel.set(21)
+
+        // Enforce testing on a specific image tag. If not set, we'll choose the image tag in
+        // a way that minimizes the number of emulators and the download of new system images.
+        // Defaults to the MPT_ANDROID_TAG environment variable.
+        tag.set("google_apis")
+
+        // Choose the default variant that will be tested when running 'runAndroidTests'.
+        // Defaults to the MPT_ANDROID_VARIANT environment variable, falls back to "debug".
+        defaultVariant.set("debug")
+
+        // By default, run* tasks execute both instrumented tests and unit tests.
+        // Set this flag to false to avoid running unit tests.
+        includeUnitTests.set(false)
+    }
+}
+```
+
+# Android Native targets
+
+### Requirements
+
+All the requirements for running [Android JVM targets](#android-jvm-targets) apply.
 
 ### How it works
 

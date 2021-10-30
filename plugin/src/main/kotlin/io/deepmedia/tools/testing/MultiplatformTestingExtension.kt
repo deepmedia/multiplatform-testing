@@ -1,5 +1,6 @@
 package io.deepmedia.tools.testing
 
+import io.deepmedia.tools.testing.android.jvm.AndroidJvmOptions
 import io.deepmedia.tools.testing.android.native_.AndroidNativeOptions
 import io.deepmedia.tools.testing.android.tools.AndroidToolsOptions
 import org.gradle.api.Action
@@ -19,5 +20,11 @@ open class MultiplatformTestingExtension @Inject constructor(objects: ObjectFact
 
     fun androidTools(action: Action<AndroidToolsOptions>) {
         action.execute(androidTools)
+    }
+
+    val android: AndroidJvmOptions = objects.newInstance(AndroidJvmOptions::class)
+
+    fun android(action: Action<AndroidJvmOptions>) {
+        action.execute(android)
     }
 }

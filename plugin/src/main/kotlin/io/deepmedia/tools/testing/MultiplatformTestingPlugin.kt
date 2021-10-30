@@ -1,5 +1,6 @@
 package io.deepmedia.tools.testing
 
+import io.deepmedia.tools.testing.android.jvm.registerAndroidJvmTasks
 import io.deepmedia.tools.testing.android.native_.registerAndroidNativeTasks
 import io.deepmedia.tools.testing.android.tools.registerAndroidToolsTasks
 import org.gradle.api.Plugin
@@ -28,6 +29,9 @@ class MultiplatformTestingPlugin : Plugin<Project> {
 
             // Android Native
             target.registerAndroidNativeTasks(kotlin, extension.androidNative, extension.androidTools)
+
+            // Android JVM
+            target.registerAndroidJvmTasks(kotlin, extension.android, extension.androidTools)
         }
     }
 }

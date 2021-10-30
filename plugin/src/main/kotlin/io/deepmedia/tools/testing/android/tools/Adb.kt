@@ -2,6 +2,7 @@ package io.deepmedia.tools.testing.android.tools
 
 import org.gradle.api.Project
 import java.io.File
+import java.util.concurrent.TimeoutException
 
 // https://developer.android.com/studio/command-line/adb
 internal class Adb(project: Project, sdkHome: String) {
@@ -47,6 +48,19 @@ internal class Adb(project: Project, sdkHome: String) {
         return devices().first { it.id == deviceId }
     }
 
+    fun awaitBoot(device: ConnectedDevice, timeout: Long): ConnectedDevice {
+        val deadline = System.currentTimeMillis() + timeout * 1000L
+        var dev = device
+        while (dev.info!!["sys.boot_completed"]?.trim() != "1") {
+            Thread.sleep(2000)
+            dev = dev.copy(info = deviceInfo(dev))
+            if (System.currentTimeMillis() > deadline) {
+                throw TimeoutException("sys.boot_completed check timed out.")
+            }
+        }
+        return dev
+    }
+
     fun push(source: String, dest: String, device: ConnectedDevice? = null) {
         terminal.run(adb, *device.idArgs, "push", source, dest, timeout = 10)
     }
@@ -58,5 +72,20 @@ internal class Adb(project: Project, sdkHome: String) {
     fun emu(command: String, device: ConnectedDevice) {
         requireNotNull(device.info?.avdName) { "Device $device is not an emulator." }
         terminal.run(adb, *device.idArgs, "emu", command, timeout = 10)
+    }
+
+    fun putSetting(device: ConnectedDevice, key: String, value: String) {
+        requireNotNull(device.info?.avdName) { "Device $device is not an emulator." }
+        terminal.run(adb, *device.idArgs, "shell", "settings", "put", "global", key, value, timeout = 5)
+    }
+
+    fun disableAnimations(device: ConnectedDevice) {
+        putSetting(device, "window_animation_scale", "0.0")
+        putSetting(device, "transition_animation_scale", "0.0")
+        putSetting(device, "animator_duration_scale", "0.0")
+    }
+
+    fun unlock(device: ConnectedDevice) {
+        terminal.run(adb, *device.idArgs, "shell", "input", "keyevent", "82", timeout = 5)
     }
 }
