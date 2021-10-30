@@ -1,4 +1,4 @@
-name: 'Build & Test'
+name: 'AndroidNative Tests (macos)'
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   TEST:
-    name: 'Test (macos-latest)'
+    name: 'Test'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2

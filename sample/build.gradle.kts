@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 plugins {
     id("kotlin-multiplatform")
     id("io.deepmedia.tools.multiplatform-testing")
+    id("com.android.library")
 }
 
 fun KotlinMultiplatformExtension.androidNative(
@@ -25,8 +26,30 @@ fun KotlinMultiplatformExtension.androidNative(
     androidNativeArm32(configure = wrapper)
     androidNativeArm64(configure = wrapper)
 }
+android {
+    compileSdk = 31
+    defaultConfig {
+        minSdk = 21
+        targetSdk = 31
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    sourceSets {
+        getByName("main") {
+            setRoot("src/androidMain")
+        }
+        getByName("test") {
+            // For some reason setRoot and 'kotlin' don't work, got to modify 'java'
+            java.setSrcDirs(listOf("src/androidUnitTest/kotlin"))
+        }
+        getByName("androidTest") {
+            // For some reason setRoot and 'kotlin' don't work, got to modify 'java'
+            java.setSrcDirs(listOf("src/androidDeviceTest/kotlin"))
+        }
+    }
+}
 
 kotlin {
+    android()
     androidNative {
         binaries {
             getTest(DEBUG).apply {
@@ -43,6 +66,20 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
+            }
+        }
+        getByName("androidTest") {
+            dependencies {
+                implementation(kotlin("test-junit"))
+                // implementation("androidx.test:core-ktx:1.4.0") robolectric
+            }
+        }
+        getByName("androidAndroidTest") {
+            dependencies {
+                implementation("androidx.test:core-ktx:1.4.0")
+                implementation("androidx.test:rules:1.4.0")
+                implementation("androidx.test:runner:1.4.0")
+                implementation("androidx.test.ext:junit-ktx:1.1.3")
             }
         }
     }

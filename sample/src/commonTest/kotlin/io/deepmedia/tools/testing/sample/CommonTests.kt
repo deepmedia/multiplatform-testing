@@ -27,4 +27,7 @@ class CommonTests {
         val sum = ops.sumCorrect(2, 2)
         assertEquals(4, sum)
     }
+
+    @Test
+    fun testNothing() = Unit
 }
