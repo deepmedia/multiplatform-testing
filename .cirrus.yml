@@ -11,7 +11,7 @@ task:
   # https://askubuntu.com/a/1252113
   fix_42693_script: sudo apt-get update && sudo apt-get install libtinfo5
   publish_script: ./gradlew publishToDirectorySnapshot
-  test_script: ./gradlew sample:runAllAndroidNativeTests sample:killAndroidEmulators --stacktrace
+  test_script: ./gradlew sample:runAllAndroidNativeTests --stacktrace
 
 task:
   name: 'AndroidJvm Tests (linux)'
@@ -26,7 +26,7 @@ task:
   # https://askubuntu.com/a/1252113
   fix_42693_script: sudo apt-get update && sudo apt-get install libtinfo5
   publish_script: ./gradlew publishToDirectorySnapshot
-  test_script: ./gradlew sample:runAndroidTests sample:killAndroidEmulators --stacktrace
+  test_script: ./gradlew sample:runAndroidTests --stacktrace
 
 task:
   name: 'Inspect system images (linux)'

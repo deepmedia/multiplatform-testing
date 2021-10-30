@@ -31,4 +31,4 @@ jobs:
         run: ./gradlew publishToDirectorySnapshot
 
       - name: 'Run :sample android native tests.'
-        run: ./gradlew sample:runAllAndroidNativeTests sample:killAndroidEmulators --stacktrace
+        run: ./gradlew sample:runAllAndroidNativeTests --stacktrace
