@@ -11,10 +11,8 @@ import org.gradle.api.tasks.*
 import org.gradle.api.tasks.options.Option
 import org.gradle.kotlin.dsl.property
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinAndroidTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import java.io.File
 import javax.inject.Inject
-import kotlin.random.Random
 
 open class AndroidJvmPrepareDeviceTask @Inject constructor(objects: ObjectFactory) : DefaultTask() {
 
@@ -83,7 +81,9 @@ open class AndroidJvmPrepareDeviceTask @Inject constructor(objects: ObjectFactor
         val devices = adb.devices()
         val avds = avd.list()
         println("Checking currently connected devices: $devices")
-        return devices.find {
+        return devices.sortedByDescending {
+            it.info!!.api
+        }.find {
             val info = it.info!!
             val tag = info.avdName?.let { name -> avds.first { it.name == name } }?.tag
             isAcceptable(info.api, tag, info.abi)
@@ -93,7 +93,9 @@ open class AndroidJvmPrepareDeviceTask @Inject constructor(objects: ObjectFactor
     private fun findAvd(): Avd? {
         val avds = avd.list()
         println("No running device could be used. Checking existing avds: ${avds.map { it.name }}")
-        return avds.find { isAcceptable(it.api, it.tag, it.abi) }
+        return avds
+            .sortedByDescending { it.api }
+            .find { isAcceptable(it.api, it.tag, it.abi) }
     }
 
     private fun findSystemImage(): SdkPackage.SystemImage? {
@@ -103,14 +105,19 @@ open class AndroidJvmPrepareDeviceTask @Inject constructor(objects: ObjectFactor
         val installedImages = installedPackages.filterIsInstance<SdkPackage.SystemImage>()
 
         // Try to find an image, preferring those that are already installed.
-        val image = installedImages.firstOrNull {
-            isAcceptable(it.api, it.tag, it.abi)
-        } ?: sdk.list<SdkPackage.SystemImage>().firstOrNull {
-            isAcceptable(it.api, it.tag, it.abi)
-        }?.also {
-            println("No installed images can be used to run tests. Installing from sdkmanager.")
-            sdk.install(it)
-        } ?: return null
+        var image = installedImages
+            .sortedByDescending { it.api }
+            .find { isAcceptable(it.api, it.tag, it.abi) }
+        if (image == null) {
+            image = sdk.list<SdkPackage.SystemImage>()
+                .sortedByDescending { it.api }
+                .find { isAcceptable(it.api, it.tag, it.abi) }
+                ?.also {
+                    println("No installed images can be used to run tests. Installing ${it.id}.")
+                    sdk.install(it)
+                }
+        }
+        image ?: return null
 
         // Install platform if needed.
         if (image.api !in installedApis) {

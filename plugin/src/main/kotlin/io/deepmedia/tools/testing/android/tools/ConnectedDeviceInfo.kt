@@ -4,11 +4,11 @@ data class ConnectedDeviceInfo(
     private val props: Map<String, String>
 ): Map<String, String> by props {
 
+    val abi: String = this["ro.product.cpu.abi"]!!
+
     // All abis that can run on this device. Typically 64bit images can run 32bit
     // code, and latest x86/x64 images can also run arm code through NDK translation.
-    val abiList: List<String> = this["ro.product.cpu.abilist"]!!.split(',')
-
-    val abi: String = this["ro.product.cpu.abi"]!!
+    val abiList: List<String> = this["ro.product.cpu.abilist"]?.split(',') ?: listOf(abi)
 
     val api: Int = this["ro.build.version.sdk"]!!.toInt()
 
