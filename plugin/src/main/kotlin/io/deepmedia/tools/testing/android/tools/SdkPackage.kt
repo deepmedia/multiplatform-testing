@@ -20,7 +20,11 @@ sealed class SdkPackage(
     )
 
     class SystemImage(parts: List<String>) : SdkPackage(parts) {
-        val api: Int by lazy { attrs[1].removePrefix("android-").toInt() }
+        val api: Int by lazy {
+            // android-Sv2 appeared recently - let's treat as API 1 for now,
+            // not sure what this means nor where it'll go.
+            attrs[1].removePrefix("android-").toIntOrNull() ?: 1
+        }
         val tag: String by lazy { attrs[2] }
         val abi: String by lazy { attrs[3] }
     }
