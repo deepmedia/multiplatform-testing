@@ -62,10 +62,7 @@ buildscript {
 
 A few things are required to test Android targets:
 
-1. A X64 host machine. The plugin *might* work properly on ARM, but this has not been tested yet.
-   If it works (emulator runs), it is unlikely that X86-based binaries can be executed successfully.
-
-2. The Android SDK Command Line tools should be installed or, if they are not, you should provide
+1. The Android SDK Command Line tools should be installed or, if they are not, you should provide
    a valid `sdkHome` directory in which they will be downloaded (macOS / Linux only).
 
    ```kotlin
@@ -78,9 +75,12 @@ A few things are required to test Android targets:
    }
    ```
 
-3. [Hardware acceleration](https://developer.android.com/studio/run/emulator-acceleration). While
+2. [Hardware acceleration](https://developer.android.com/studio/run/emulator-acceleration). While
    Android documentation states that it is "recommended", hosts without acceleration are typically
-   unable to run the emulator at all.
+   unable to run the emulator at all. 
+   
+Note that if you connect a real device, the plugin will detect it and it will not try to launch an emulator.
+In this case, host hardware acceleration is not needed of course.
 
 ### Tasks
 
@@ -128,7 +128,12 @@ multiplatformTesting {
 
 ### Requirements
 
-All the requirements for running [Android JVM targets](#android-jvm-targets) apply.
+All the requirements for running [Android JVM targets](#android-jvm-targets) apply. 
+
+In addition, it is highly recommended to use a X64 host machine, especially to be able to test all four architectures 
+(x86, x86_64, armeabi-v7a, arm64-v8a). The plugin *might* work on ARM hosts but this has not been tested,
+and anyway ARM emulators would not be able to run non-ARM binaries, while x86-based hosts can run ARM code
+through binary translation.
 
 ### How it works
 
