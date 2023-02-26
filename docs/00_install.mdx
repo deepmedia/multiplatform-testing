@@ -1,0 +1,44 @@
+---
+title: Install
+---
+
+# Install
+
+## Build configuration
+
+The `multiplatform-testing` plugin is available on Maven Central. To install, add the following lines:
+
+```kotlin
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("io.deepmedia.tools.testing:plugin:0.4.0")
+    }
+}
+```
+
+and then apply it to the desired project:
+
+```kotlin
+plugins {
+    id("kotlin-multiplatform")
+    id("io.deepmedia.tools.multiplatform-testing")
+}
+```
+
+## Snapshots
+
+We also publish development snapshots with version `latest-SNAPSHOT` in sonatype:
+
+```kotlin
+buildscript {
+    repositories {
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    }
+    dependencies {
+        classpath("io.deepmedia.tools.testing:plugin:latest-SNAPSHOT")
+    }
+}
+```
