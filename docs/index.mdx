@@ -1,0 +1,15 @@
+---
+title: Intro
+---
+
+# Intro
+
+A Gradle plugin for easy testing of Kotlin Multiplatform projects in your CI pipeline.
+
+- Support for testing `android()` targets on the emulator or a connected device.
+  The plugin takes care of downloading SDK components, identifying the correct platform
+  and system image, spinning up a well configured emulator and run the tests.
+
+- Support for testing `androidNative*()` binaries on the emulator or a connected device.
+  Just like JVM-based android targets, the plugin takes care of the emulator setup
+  and ensures that the device will be able to run the target architecture.

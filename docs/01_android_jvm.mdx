@@ -1,0 +1,71 @@
+---
+title: Android (JVM) targets
+---
+
+# Android (JVM) targets
+
+## Requirements
+
+A few things are required to test Android targets:
+
+1. The Android SDK Command Line tools should be installed or, if they are not, you should provide
+   a valid `sdkHome` directory in which they will be downloaded (macOS / Linux only).
+
+   ```kotlin
+   multiplatformTesting {
+       androidTools {
+           // path to installed SDK, or path where SDK will be installed
+           // defaults to $ANDROID_HOME environment variable.
+           sdkHome.set("path/to/sdk")
+       }
+   }
+   ```
+
+2. [Hardware acceleration](https://developer.android.com/studio/run/emulator-acceleration). While
+   Android documentation states that it is "recommended", hosts without acceleration are typically
+   unable to run the emulator at all.
+
+Note that if you connect a real device, the plugin will detect it and it will not try to launch an emulator.
+In this case, host hardware acceleration is not needed of course.
+
+## Tasks
+
+> Use `./gradlew tasks --group='Multiplatform Testing'` to list all testing tasks.
+
+The plugin provides two relevant tasks:
+
+- `run<TargetName>Tests` tasks: runs tests for the specified target, typically this will be
+  `runAndroidTests` unless you used a custom name for the android target.
+- `killAndroidEmulators` task: kills all currently running emulators. Can be used to cleanup.
+
+This means that the typical command will be:
+
+```
+./gradlew app:runAndroidTests app:killAndroidEmulators
+```
+
+## Configuration
+
+```kotlin
+multiplatformTesting {
+    android {
+        // Enforce testing on a specific API level. If not set, we'll choose the API level in
+        // a way that minimizes the number of emulators and the download of new system images.
+        // Defaults to the MPT_ANDROID_API environment variable.
+        apiLevel.set(21)
+
+        // Enforce testing on a specific image tag. If not set, we'll choose the image tag in
+        // a way that minimizes the number of emulators and the download of new system images.
+        // Defaults to the MPT_ANDROID_TAG environment variable.
+        tag.set("google_apis")
+
+        // Choose the default variant that will be tested when running 'runAndroidTests'.
+        // Defaults to the MPT_ANDROID_VARIANT environment variable, falls back to "debug".
+        defaultVariant.set("debug")
+
+        // By default, run* tasks execute both instrumented tests and unit tests.
+        // Set this flag to false to avoid running unit tests.
+        includeUnitTests.set(false)
+    }
+}
+```
