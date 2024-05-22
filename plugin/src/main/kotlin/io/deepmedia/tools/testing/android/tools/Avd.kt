@@ -15,7 +15,12 @@ data class Avd(
     // Read from the configuration file
     val api by lazy {
         val config = path.replace(".avd", ".ini")
-        val target = File(config).readLines().associate {
+        val file = File(config).apply {
+            require(it.exists()) {
+                "Configuration file of AVD $name not found. Maybe AVD was renamed? See https://github.com/deepmedia/multiplatform-testing/issues/4"
+            }
+        }
+        val target = file.readLines().associate {
             val (k, v) = it.split('=')
             k to v
         }["target"]
